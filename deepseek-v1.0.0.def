@@ -1,0 +1,52 @@
+Bootstrap: docker
+From: nvidia/cuda:12.2.0-base-ubuntu22.04
+
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && apt-get upgrade -y
+    apt-get install -y software-properties-common curl git pciutils
+
+    add-apt-repository ppa:deadsnakes/ppa -y
+    apt-get update
+
+    apt-get install -y python3.11 python3.11-venv python3.11-distutils
+
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    apt-get install -y nodejs
+
+    # Install Ollama
+    curl -fsSL https://ollama.com/install.sh | sh
+
+    # Create and activate a virtual environment for Open WebUI using Python 3.11
+    python3.11 -m venv /opt/open-webui-venv
+    . /opt/open-webui-venv/bin/activate
+
+    # Install Open WebUI from GitHub
+    pip install git+https://github.com/open-webui/open-webui
+
+    # Deactivate virtual environment
+    deactivate
+
+
+%environment
+    export PATH=/opt/open-webui-venv/bin:$PATH
+
+
+%startscript
+    # Start the Ollama service
+    /usr/local/bin/ollama serve &
+
+    # Activate the virtual environment and start Open WebUI
+    . /opt/open-webui-venv/bin/activate
+    open-webui serve --host 0.0.0.0 --port 8080
+    deactivate
+
+
+%labels
+    Author: Gabriel Freytag
+    Version: 1.0.0
+    Description: Singularity container for DeepSeek with Open WebUI
