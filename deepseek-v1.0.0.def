@@ -1,32 +1,34 @@
 Bootstrap: docker
-From: nvidia/cuda:12.2.0-base-ubuntu22.04
+From: nvidia/cuda:12.4.0-base-ubuntu22.04
 
 
 %post
     export DEBIAN_FRONTEND=noninteractive
 
     apt-get update && apt-get upgrade -y
-    apt-get install -y software-properties-common curl git pciutils
+    apt-get install -y software-properties-common curl git pciutils wget
 
     add-apt-repository ppa:deadsnakes/ppa -y
     apt-get update
 
-    apt-get install -y python3.11 python3.11-venv python3.11-distutils
+    # Install Python 3.12 (recommended for Open WebUI v0.6.36)
+    apt-get install -y python3.12 python3.12-venv python3.12-dev
 
-    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
 
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    # Install Node.js 20.x LTS (required for Open WebUI v0.6.36)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get install -y nodejs
 
-    # Install Ollama
+    # Install Ollama v0.12.10
     curl -fsSL https://ollama.com/install.sh | sh
 
-    # Create and activate a virtual environment for Open WebUI using Python 3.11
-    python3.11 -m venv /opt/open-webui-venv
+    # Create and activate a virtual environment for Open WebUI using Python 3.12
+    python3.12 -m venv /opt/open-webui-venv
     . /opt/open-webui-venv/bin/activate
 
-    # Install Open WebUI from GitHub
-    pip install git+https://github.com/open-webui/open-webui
+    # Install Open WebUI v0.6.36
+    pip install open-webui==0.6.36
 
     # Deactivate virtual environment
     deactivate
@@ -49,4 +51,4 @@ From: nvidia/cuda:12.2.0-base-ubuntu22.04
 %labels
     Author: Gabriel Freytag
     Version: 1.0.0
-    Description: Singularity container for DeepSeek with Open WebUI
+    Description: Singularity container for DeepSeek with Open WebUI v0.6.36 and Ollama v0.12.10
